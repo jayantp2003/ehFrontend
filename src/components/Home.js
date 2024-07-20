@@ -11,7 +11,7 @@ function Home() {
 
   useEffect(() => {
     axios
-      .get("/posts")
+      .get("https://ehbackend1.vercel.app/posts")
       .then((response) => {
         setPosts(response.data);
         setLoading(false);
@@ -23,9 +23,7 @@ function Home() {
       });
   }, []);
 
-  const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPosts = posts;
 
   if (loading)
     return (

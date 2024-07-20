@@ -10,7 +10,7 @@ function Post() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`/posts/${id}`)
+    axios.get(`https://ehbackend1.vercel.app/posts/${id}`)
       .then(response => {
         setPost(response.data);
       })
@@ -22,7 +22,7 @@ function Post() {
 
   const deletePost = () => {
     if (window.confirm('Are you sure you want to delete this post?')) {
-      axios.delete(`/posts/${id}`)
+      axios.delete(`https://ehbackend1.vercel.app/posts/${id}`)
         .then(() => {
           navigate('/');
         })
@@ -34,7 +34,7 @@ function Post() {
   };
 
   if (error) return <Layout pageType="post"><div className="error">{error}</div></Layout>;
-  if (!post) return <Layout pageType="post"><div>Loading...</div></Layout>;
+  if (!post) return <Layout pageType="post"><div className="loading">Loading...</div></Layout>;
 
   return (
     <Layout pageType="post">
@@ -42,9 +42,17 @@ function Post() {
         <h1>{post.title}</h1>
         {post.image && <img src={post.image} alt={post.title} className="post-image" />}
         <div className="post-content" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="post-meta">
+          <span>Posted on: {new Date(post.createdAt).toLocaleDateString()}</span>
+          
+        </div>
         <div className="post-actions">
-          <Link to={`/edit/${post._id}`} className="btn"><i className="fas fa-edit"></i> Edit</Link>
-          <button onClick={deletePost} className="btn btn-danger"><i className="fas fa-trash"></i> Delete</button>
+          <Link to={`/edit/${post._id}`} className="btn">
+            <i className="fas fa-edit"></i> Edit
+          </Link>
+          <button onClick={deletePost} className="btn btn-danger">
+            <i className="fas fa-trash"></i> Delete
+          </button>
         </div>
       </article>
     </Layout>
