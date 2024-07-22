@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const CustomEditor = ({ value, onChange }) => {
   const [isBold, setIsBold] = useState(false);
@@ -6,20 +6,49 @@ const CustomEditor = ({ value, onChange }) => {
   const [isUnderline, setIsUnderline] = useState(false);
   const editorRef = useRef(null);
 
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = value;
+    }
+  }, [value]);
+
   const handleFormat = (command, value = null) => {
     document.execCommand(command, false, value);
-    editorRef.current.focus();
+    // editorRef.current.focus();
   };
 
   const handleChange = () => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      const newContent = editorRef.current.innerHTML;
+      onChange(newContent);
     }
   };
 
   const handleButtonClick = (event, command, value = null) => {
-    event.preventDefault();  // Prevent the default button behavior
+    event.preventDefault();
     handleFormat(command, value);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      
+      // Insert a new line
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      const br = document.createElement('br');
+      range.deleteContents();
+      range.insertNode(br);
+      
+      // Move the caret after the break
+      range.setStartAfter(br);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // Trigger the change event
+      handleChange();
+    }
   };
 
   return (
@@ -28,27 +57,28 @@ const CustomEditor = ({ value, onChange }) => {
         <button
           onMouseDown={(event) => handleButtonClick(event, 'bold')}
           className={`toolbar-btn ${isBold ? 'active' : ''}`}
-          onClick={() => setIsBold(!isBold)}
+          onClick={(event) => {event.preventDefault();}}
         >
           B
         </button>
         <button
           onMouseDown={(event) => handleButtonClick(event, 'italic')}
           className={`toolbar-btn ${isItalic ? 'active' : ''}`}
-          onClick={() => setIsItalic(!isItalic)}
+          onClick={(event) => {event.preventDefault();}}
         >
           I
         </button>
         <button
           onMouseDown={(event) => handleButtonClick(event, 'underline')}
           className={`toolbar-btn ${isUnderline ? 'active' : ''}`}
-          onClick={() => setIsUnderline(!isUnderline)}
+          onClick={(event) => {event.preventDefault();}}
         >
           U
         </button>
         <button
           onMouseDown={(event) => handleButtonClick(event, 'insertUnorderedList')}
           className="toolbar-btn"
+          onClick={(event) => {event.preventDefault();}}
         >
           • List
         </button>
@@ -67,8 +97,8 @@ const CustomEditor = ({ value, onChange }) => {
         ref={editorRef}
         className="editor-content"
         contentEditable
-        dangerouslySetInnerHTML={{ __html: value }}
         onInput={handleChange}
+        onKeyDown={handleKeyDown}
       />
     </div>
   );

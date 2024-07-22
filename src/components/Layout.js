@@ -1,15 +1,32 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import Loader from './Loader'; // Make sure to create this file
 
-function Layout({ children, pageType }) {
+function Layout({ children, pageType, isLoading }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    if (userData) {
+      setUser(userData);
+    }
+  }, []);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/');
+  };
+
   return (
     <div className={`layout ${pageType}-page`}>
+      <Loader isLoading={isLoading} />
       <header>
         <nav className={isMenuOpen ? 'nav-open' : ''}>
           <Link to="/" className="logo">
@@ -19,8 +36,18 @@ function Layout({ children, pageType }) {
             <i className={`fas ${isMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
           </button>
           <div className={`nav-links ${isMenuOpen ? 'show' : ''}`}>
-            <Link to="/" onClick={toggleMenu}>Home</Link>
-            <Link to="/create" onClick={toggleMenu}>Create Post</Link>
+            {user ? (
+              <>
+                <Link to="/create" onClick={toggleMenu}>Create Post</Link>
+                <Link to="/profile" onClick={toggleMenu}>Profile</Link>
+                <button onClick={handleLogout} className="btn btn-logout">Logout</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={toggleMenu}>Login</Link>
+                <Link to="/register" onClick={toggleMenu}>Register</Link>
+              </>
+            )}
           </div>
         </nav>
       </header>

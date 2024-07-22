@@ -7,12 +7,21 @@ import CustomEditor from './CustomEditor';
 function Edit() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [content1, setContent1] = useState('');
   const [error, setError] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get(`https://ehbackend1.vercel.app/posts/${id}`)
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    axios.get(process.env.REACT_APP_PROXY_URL+`/posts/${id}`, {
+      headers: { 'Authorization': `Bearer ${user.token}` }
+    })
       .then(response => {
         setTitle(response.data.title);
         setContent(response.data.content);
@@ -21,14 +30,34 @@ function Edit() {
         console.error('There was an error fetching the post!', error);
         setError('Failed to load post. Please try again.');
       });
-  }, [id]);
+  }, [id, navigate]);
 
-  const updatePost = () => {
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('content', content);
-    axios.put(`https://ehbackend1.vercel.app/posts/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+  const updatePost = (e) => {
+    e.preventDefault(); // Prevent default form submission
+    
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      setError('You must be logged in to update a post.');
+      return;
+    }
+
+    // Check if the form is valid
+    if (!title.trim() || !content1.trim()) {
+      setError('Title and content are required.');
+      return;
+    }
+
+    const postData = {
+      author: user.email,
+      title: title.trim(),
+      content: content1.trim()
+    };
+
+    axios.put(process.env.REACT_APP_PROXY_URL+`/posts/${id}`, postData, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      }
     })
       .then(() => {
         navigate(`/post/${id}`);
@@ -48,7 +77,7 @@ function Edit() {
             <span className="block sm:inline">{error}</span>
           </div>
         )}
-        <form onSubmit={e => { e.preventDefault(); updatePost(); }} className="space-y-6">
+        <form onSubmit={updatePost} className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
               Title
@@ -66,7 +95,7 @@ function Edit() {
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
               Content
             </label>
-            <CustomEditor value={content} onChange={setContent} />
+            <CustomEditor value={content} onChange={setContent1} />
           </div>
           <button type="submit" className="w-full btn">Update Post</button>
         </form>

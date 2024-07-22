@@ -8,22 +8,26 @@ function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const proxyUrl = process.env.REACT_APP_PROXY_URL;
 
   useEffect(() => {
     axios
-      .get("https://ehbackend1.vercel.app/posts")
+      .get(`${proxyUrl}/posts`)
       .then((response) => {
         setPosts(response.data);
         setLoading(false);
       })
       .catch((error) => {
         console.error("There was an error fetching the posts!", error);
+        console.log(proxyUrl);
         setError("Failed to load posts. Please try again later.");
         setLoading(false);
       });
-  }, []);
+  }, [proxyUrl]);
 
-  const filteredPosts = posts;
+  const filteredPosts = posts.filter((post) =>
+    post.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading)
     return (
@@ -53,9 +57,7 @@ function Home() {
           <i className="fas fa-search search-icon"></i>
         </div>
         {filteredPosts.length === 0 ? (
-          <p className="no-posts">
-            No posts found. Try a different search term.
-          </p>
+          <p className="no-posts">No posts found. Try a different search term.</p>
         ) : (
           <div className="post-grid">
             {filteredPosts.map((post) => (

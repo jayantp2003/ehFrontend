@@ -7,15 +7,30 @@ import CustomEditor from './CustomEditor';
 function Create() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [content1, setContent1] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const createPost = () => {
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('content', content);
-    axios.post('https://ehbackend1.vercel.app/posts', formData, {
-      headers: { 'Content-Type': 'application/json' }
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      setError('You must be logged in to create a post.');
+      return;
+    }
+
+    const postData = {
+      title: title,
+      content: content1,
+      author: user.email
+    };
+
+    console.log(postData);
+
+    axios.post(`${process.env.REACT_APP_PROXY_URL}/posts`, postData, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      }
     })
       .then(() => {
         navigate('/');
@@ -53,7 +68,7 @@ function Create() {
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
               Content
             </label>
-            <CustomEditor value={content} onChange={setContent} />
+            <CustomEditor value={content} onChange={setContent1} />
           </div>
           <button type="submit" className="w-full btn">Create Post</button>
         </form>
