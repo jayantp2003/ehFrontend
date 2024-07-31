@@ -61,7 +61,7 @@ function Post() {
           <span>Posted on: {new Date(post.createdAt).toLocaleDateString()}</span>
           <span>By: {post.author}</span>
         </div>
-        {(
+        {(isAuthor &&
           <div className="post-actions">
             <Link to={`/edit/${post._id}`} className="btn">
               <i className="fas fa-edit"></i> Edit
